@@ -52,5 +52,5 @@ jobs:
           docker pull mimasiunia/filesshare:latest
           docker stop your-app || true
           docker rm your-app || true
-          docker run -d --filesshare -p 4999:4999 -v /myservices/fs/data:/app/data mimasiunia/filesshare:latest
+          docker run -d --name filesshare -p 4999:4999 -v /myservices/fs/data:/app/data mimasiunia/filesshare:latest
         EOF
