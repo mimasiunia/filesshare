@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.9.6
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9.6'
+
+    - name: Install MariaDB Connector/C
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mariadb-client libmariadb-dev
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        pytest
+
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+    - name: Build Docker image
+      run: docker build . -t mimasiunia/filesshare:latest
+
+    - name: Push Docker image to Docker Hub
+      run: docker push mimasiunia/filesshare:latest
+
+    - name: Deploy to VPS
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SERVER: ${{ secrets.SERVER }}
+        USER: ${{ secrets.USER }}
+      run: |
+        echo "${SSH_PRIVATE_KEY}" | ssh-add -
+        ssh -o StrictHostKeyChecking=no $USER@$SERVER << EOF
+          docker pull mimasiunia/filesshare:latest
+          docker stop your-app || true
+          docker rm your-app || true
+          docker run -d --filesshare -p 4999:4999 -v /myservices/fs/data:/app/data mimasiunia/filesshare:latest
+        EOF
