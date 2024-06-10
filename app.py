@@ -3,8 +3,9 @@ from flask_cors import CORS
 import logic
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:63342", "https://bryhas.com"]}})
 app.config['UPLOAD_FOLDER'] = 'data'
+app.config['MAX_CONTENT_LENGTH'] = 2048 * 1024 * 1024  # 2048 MB
 
 
 @app.route('/api/fs/upload', methods=['POST'])
@@ -23,7 +24,6 @@ def upload_files():
 
     download_link = f"https://bryhas.com/getfs/{result['identifier']}"
     return jsonify({"link": download_link})
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4999)
