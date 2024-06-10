@@ -26,8 +26,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run tests
-      run: |
-        pytest
+      run: pytest
 
     - name: Build Docker image
       run: docker build . -t mimasiunia/filesshare:latest
@@ -46,9 +45,7 @@ jobs:
     - name: Push Docker image to Docker Hub
       run: |
         docker tag mimasiunia/filesshare:latest mimasiunia/filesshare:latest
-        docker image annotate --description "image for ci/cd" mimasiunia/filesshare:latest
         docker push mimasiunia/filesshare:latest
-        docker repository update mimasiunia/filesshare --privacy=private
 
     - name: Deploy to VPS
       env:
@@ -56,7 +53,9 @@ jobs:
         SERVER: ${{ secrets.SERVER }}
         USER: ${{ secrets.USER }}
       run: |
-        echo "${SSH_PRIVATE_KEY}" | ssh-add -
+        mkdir -p ~/.ssh
+        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
         ssh -o StrictHostKeyChecking=no $USER@$SERVER << EOF
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
           docker stop filesshare || true
