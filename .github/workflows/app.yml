@@ -67,5 +67,5 @@ jobs:
           echo "$SUDO_PASSWORD" | sudo -S docker rm filesshare || true
           echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare:latest || true
           echo "$SUDO_PASSWORD" | sudo -S docker pull mimasiunia/filesshare:latest
-          echo "$SUDO_PASSWORD" | sudo -S docker run -d --name filesshare -p 4999:4999 -v /myservices/fs/data:/app/data mimasiunia/filesshare:latest
+          echo "$SUDO_PASSWORD" | sudo -S docker run -d --name filesshare -p 4999:4999 -v /myservices/fs/data:/app/data -v /etc/letsencrypt/live/bryhas.com:/etc/letsencrypt/live/bryhas.com mimasiunia/filesshare:latest
         EOF

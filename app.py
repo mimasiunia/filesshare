@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logic
+import ssl
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -27,4 +28,6 @@ def upload_files():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=4999)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+    context.load_cert_chain('/etc/letsencrypt/live/bryhas.com/fullchain.pem', '/etc/letsencrypt/live/bryhas.com/privkey.pem')
+    app.run(host='0.0.0.0', port=4999, ssl_context=context)
