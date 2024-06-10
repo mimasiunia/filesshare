@@ -58,10 +58,10 @@ jobs:
         SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
       run: |
         mkdir -p ~/.ssh
-        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+        echo "${SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         sudo chmod 666 /var/run/docker.sock
-        ssh -o StrictHostKeyChecking=no $USER@$SERVER << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
           echo "$SUDO_PASSWORD" | sudo -S docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
           echo "$SUDO_PASSWORD" | sudo -S docker stop filesshare || true
           echo "$SUDO_PASSWORD" | sudo -S docker rm filesshare || true
