@@ -18,13 +18,10 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install MariaDB Connector/C
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y mariadb-client libmariadb-dev
-
     - name: Install dependencies
       run: |
+        echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S apt-get update
+        echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S apt-get install -y jq
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
@@ -32,10 +29,10 @@ jobs:
       run: pytest
 
     - name: Build Docker image
-      run: sudo docker build . -t mimasiunia/filesshare:latest
+      run: echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker build . -t mimasiunia/filesshare:latest
 
     - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo -S docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     - name: Delete old Docker image from Docker Hub
       run: |
@@ -47,24 +44,25 @@ jobs:
 
     - name: Push Docker image to Docker Hub
       run: |
-        sudo docker tag mimasiunia/filesshare:latest mimasiunia/filesshare:latest
-        sudo docker push mimasiunia/filesshare:latest
+        echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker tag mimasiunia/filesshare:latest mimasiunia/filesshare:latest
+        echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S docker push mimasiunia/filesshare:latest
 
     - name: Deploy to VPS
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         SERVER: ${{ secrets.SERVER }}
         USER: ${{ secrets.USER }}
+        SUDO_PASSWORD: ${{ secrets.SUDO_PASSWORD }}
       run: |
         mkdir -p ~/.ssh
         echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         sudo chmod 666 /var/run/docker.sock
         ssh -o StrictHostKeyChecking=no $USER@$SERVER << EOF
-          sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
-          sudo docker stop filesshare || true
-          sudo docker rm filesshare || true
-          sudo docker rmi mimasiunia/filesshare:latest || true
-          sudo docker pull mimasiunia/filesshare:latest
-          sudo docker run -d --name filesshare -p 4999:4999 -v /myservices/fs/data:/app/data mimasiunia/filesshare:latest
+          echo "${SUDO_PASSWORD}" | sudo -S docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+          echo "${SUDO_PASSWORD}" | sudo -S docker stop filesshare || true
+          echo "${SUDO_PASSWORD}" | sudo -S docker rm filesshare || true
+          echo "${SUDO_PASSWORD}" | sudo -S docker rmi mimasiunia/filesshare:latest || true
+          echo "${SUDO_PASSWORD}" | sudo -S docker pull mimasiunia/filesshare:latest
+          echo "${SUDO_PASSWORD}" | sudo -S docker run -d --name filesshare -p 4999:4999 -v /myservices/fs/data:/app/data mimasiunia/filesshare:latest
         EOF
