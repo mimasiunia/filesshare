@@ -17,4 +17,4 @@ EXPOSE 4999
 
 ENV FLASK_APP=app.py
 
-CMD ["flask", "run", "--host=127.0.0.1", "--port=4999"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=4999"]

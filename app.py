@@ -7,7 +7,7 @@ CORS(app)
 app.config['UPLOAD_FOLDER'] = 'data'
 
 
-@app.route('/upload', methods=['POST'])
+@app.route('/api/fs/upload', methods=['POST'])
 def upload_files():
     if 'files' not in request.files:
         return jsonify({"error": "No files part"}), 400
