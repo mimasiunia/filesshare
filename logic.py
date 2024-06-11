@@ -2,7 +2,7 @@ import os
 import random
 import string
 import datetime
-from db import insert_new_upload_db, get_file_info_db
+from db import Connector
 
 
 def generate_identifier(length=12):
@@ -33,7 +33,7 @@ def save_files(files, upload_folder):
         create_date = datetime.datetime.now()
         end_date = create_date + datetime.timedelta(days=28)
 
-        insert_new_upload_db(identifier, create_date, end_date, size_gb, file_count)
+        Connector.insert_new_upload_db(identifier, create_date, end_date, size_gb, file_count)
 
         return {"identifier": identifier, "error": None}
     except Exception as e:
@@ -45,7 +45,7 @@ def validate_identifier(identifier):
 
 
 def get_file_info(identifier):
-    return get_file_info_db(identifier)
+    return Connector.get_file_info_db(identifier)
 
 
 def get_folder_path(identifier, upload_folder):
