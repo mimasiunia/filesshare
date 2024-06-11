@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import logic
+import os
+import zipfile
 
 app = Flask(__name__)
 CORS(app)
@@ -32,16 +34,30 @@ def get_file_info(identifier):
         file_info = logic.get_file_info(identifier)
         if file_info:
             return jsonify(file_info)
-    return jsonify({"error": "Invalid or non-existent file identifier."}), 400
+    return jsonify({"error": "Invalid or non-existent file identifier."}), 404
 
 
 @app.route('/api/fs/download/<identifier>', methods=['GET'])
 def download_files(identifier):
-    if logic.validate_identifier(identifier):
-        folder_path = logic.get_folder_path(identifier, app.config['UPLOAD_FOLDER'])
-        if folder_path:
-            return send_from_directory(directory=folder_path, filename='', as_attachment=True)
-    return jsonify({"error": "Invalid or non-existent file identifier."}), 400
+    try:
+        if logic.validate_identifier(identifier):
+            folder_path = logic.get_folder_path(identifier, app.config['UPLOAD_FOLDER'])
+            if folder_path:
+                files = os.listdir(folder_path)
+                if len(files) == 1:
+                    # 1 file send
+                    return send_from_directory(folder_path, files[0], as_attachment=True)
+                else:
+                    # zip for multiple files
+                    zip_path = os.path.join(folder_path, f"{identifier}.zip")
+                    with zipfile.ZipFile(zip_path, 'w') as zipf:
+                        for file in files:
+                            zipf.write(os.path.join(folder_path, file), file)
+                    return send_from_directory(folder_path, f"{identifier}.zip", as_attachment=True)
+            return jsonify({"error": "Folder not found"}), 404
+        return jsonify({"error": "Invalid identifier format"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
