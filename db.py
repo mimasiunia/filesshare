@@ -31,3 +31,5 @@ class Connector:
 
 def insert_new_upload_db(identifier, create_date, end_date, size_gb, file_count):
     Connector.insert_new_upload_db(identifier, create_date, end_date, size_gb, file_count)
+def get_file_info_db(identifier, create_date, end_date, size_gb, file_count):
+    Connector.insert_new_upload_db(identifier, create_date, end_date, size_gb, file_count)

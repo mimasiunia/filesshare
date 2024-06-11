@@ -2,7 +2,7 @@ import os
 import random
 import string
 import datetime
-from db import insert_new_upload_db
+from db import insert_new_upload_db, get_file_info_db
 
 
 def generate_identifier(length=12):
@@ -38,3 +38,16 @@ def save_files(files, upload_folder):
         return {"identifier": identifier, "error": None}
     except Exception as e:
         return {"identifier": None, "error": str(e)}
+
+
+def validate_identifier(identifier):
+    return len(identifier) == 12 and identifier.isalnum()
+
+
+def get_file_info(identifier):
+    return get_file_info_db(identifier)
+
+
+def get_folder_path(identifier, upload_folder):
+    folder_path = os.path.join(upload_folder, identifier)
+    return folder_path if os.path.exists(folder_path) else None
