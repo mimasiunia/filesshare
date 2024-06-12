@@ -56,10 +56,17 @@ def get_statistics():
                 "total_gb_uploaded": row[1]
             }
         else:
-            return None
+            return {
+                "total_files_uploaded": 0,
+                "total_gb_uploaded": 0.0
+            }
     except Exception as e:
         print(f"Error fetching statistics from database: {e}")
-        return None
+        return {
+            "total_files_uploaded": 0,
+            "total_gb_uploaded": 0.0
+        }
+
 
 
 def generate_identifier(length=12):
