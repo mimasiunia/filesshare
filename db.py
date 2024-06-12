@@ -1,4 +1,7 @@
 import mariadb
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Connector:
@@ -102,7 +105,7 @@ class Connector:
     def get_expired_files(current_time):
         try:
             conn = Connector.create_connection()
-            print("Database connection established for fetching expired files.")
+            logger.debug("Database connection established for fetching expired files.")
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT Identifier FROM Uploads WHERE EndDate < ?", (current_time,)
@@ -111,17 +114,17 @@ class Connector:
             cursor.close()
             conn.close()
 
-            print(f"Found {len(rows)} expired files in database.")
+            logger.debug(f"Found {len(rows)} expired files in database.")
             return [row[0] for row in rows]
         except mariadb.Error as e:
-            print(f"Error fetching expired files from database: {e}")
+            logger.error(f"Error fetching expired files from database: {e}")
             return []
 
     @staticmethod
     def delete_upload_record(identifier):
         try:
             conn = Connector.create_connection()
-            print(f"Database connection established for deleting record with identifier: {identifier}")
+            logger.debug(f"Database connection established for deleting record with identifier: {identifier}")
             cursor = conn.cursor()
             cursor.execute(
                 "DELETE FROM Uploads WHERE Identifier = ?", (identifier,)
@@ -129,6 +132,6 @@ class Connector:
             conn.commit()
             cursor.close()
             conn.close()
-            print(f"Successfully deleted database record for identifier: {identifier}")
+            logger.debug(f"Successfully deleted database record for identifier: {identifier}")
         except mariadb.Error as e:
-            print(f"Error deleting upload record from database: {e}")
+            logger.error(f"Error deleting upload record from database: {e}")

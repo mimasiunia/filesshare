@@ -8,11 +8,15 @@ import logic
 import os
 import zipfile
 import shutil
+import logging
 
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = 'data'
 app.config['MAX_CONTENT_LENGTH'] = 2048 * 1024 * 1024  # 2048 MB
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 @app.route('/api/fs/upload', methods=['POST'])
@@ -77,31 +81,31 @@ def get_statistics():
 def delete_expired_files():
     while True:
         now = datetime.now()
-        print(f"Checking for expired files at {now}")
+        logger.debug(f"Checking for expired files at {now}")
         expired_files = Connector.get_expired_files(now)
-        print(f"Found {len(expired_files)} expired files.")
+        logger.debug(f"Found {len(expired_files)} expired files.")
 
         for identifier in expired_files:
             folder_path = os.path.join(app.config['UPLOAD_FOLDER'], identifier)
             if os.path.exists(folder_path):
                 try:
                     shutil.rmtree(folder_path)
-                    print(f"Successfully deleted folder for identifier: {identifier}")
+                    logger.debug(f"Successfully deleted folder for identifier: {identifier}")
                     Connector.delete_upload_record(identifier)
-                    print(f"Successfully deleted database record for identifier: {identifier}")
+                    logger.debug(f"Successfully deleted database record for identifier: {identifier}")
                 except Exception as e:
-                    print(f"Error deleting folder {folder_path}: {e}")
+                    logger.error(f"Error deleting folder {folder_path}: {e}")
             else:
-                print(f"Folder not found for identifier: {identifier}")
+                logger.debug(f"Folder not found for identifier: {identifier}")
 
-        time.sleep(30)
+        time.sleep(60)  # Перевіряти кожні 60 секунд для тестування, можна змінити на 86400 для щоденного
 
 
 if __name__ == '__main__':
-    print("Starting the Flask application...")
+    logger.debug("Starting the Flask application...")
     try:
         threading.Thread(target=delete_expired_files, daemon=True).start()
-        print("Background thread for deleting expired files has started.")
+        logger.debug("Background thread for deleting expired files has started.")
     except Exception as e:
-        print(f"Error starting background thread: {e}")
+        logger.error(f"Error starting background thread: {e}")
     app.run(host='0.0.0.0', port=4999)
