@@ -60,5 +60,14 @@ def download_files(identifier):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/fs/statistics', methods=['GET'])
+def get_statistics():
+    try:
+        stats = logic.get_statistics()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4999)

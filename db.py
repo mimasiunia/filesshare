@@ -53,3 +53,18 @@ class Connector:
         except mariadb.Error as e:
             print(f"Error fetching from database: {e}")
             return None
+    @staticmethod
+
+    def update_statistics(file_count, size_gb):
+        try:
+            conn = Connector.create_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE Statistics SET total_files_uploaded = total_files_uploaded + ?, total_gb_uploaded = total_gb_uploaded + ?",
+                (file_count, size_gb)
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except mariadb.Error as e:
+            print(f"Error updating statistics: {e}")
