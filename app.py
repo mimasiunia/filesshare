@@ -1,3 +1,6 @@
+import threading
+import time
+from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from db import Connector
@@ -69,6 +72,21 @@ def get_statistics():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def delete_expired_files():
+    while True:
+        now = datetime.now()
+        expired_files = Connector.get_expired_files(now)
+        for identifier in expired_files:
+            folder_path = os.path.join(app.config['UPLOAD_FOLDER'], identifier)
+            if os.path.exists(folder_path):
+                try:
+                    os.rmdir(folder_path)
+                    Connector.delete_upload_record(identifier)
+                except Exception as e:
+                    print(f"Error deleting folder {folder_path}: {e}")
+        time.sleep(30)  # Check every 12 hours // 43200
+
 
 if __name__ == '__main__':
+    threading.Thread(target=delete_expired_files, daemon=True).start()
     app.run(host='0.0.0.0', port=4999)

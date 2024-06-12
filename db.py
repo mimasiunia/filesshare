@@ -97,3 +97,34 @@ class Connector:
             conn.close()
         except mariadb.Error as e:
             print(f"Error updating statistics: {e}")
+
+    @staticmethod
+    def get_expired_files(current_time):
+        try:
+            conn = Connector.create_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT Identifier FROM Uploads WHERE EndDate < ?", (current_time,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            conn.close()
+
+            return [row[0] for row in rows]
+        except mariadb.Error as e:
+            print(f"Error fetching expired files from database: {e}")
+            return []
+
+    @staticmethod
+    def delete_upload_record(identifier):
+        try:
+            conn = Connector.create_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM Uploads WHERE Identifier = ?", (identifier,)
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except mariadb.Error as e:
+            print(f"Error deleting upload record from database: {e}")
