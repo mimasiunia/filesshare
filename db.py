@@ -110,6 +110,7 @@ class Connector:
             cursor.close()
             conn.close()
 
+            print(f"Found {len(rows)} expired files.")
             return [row[0] for row in rows]
         except mariadb.Error as e:
             print(f"Error fetching expired files from database: {e}")
@@ -126,5 +127,6 @@ class Connector:
             conn.commit()
             cursor.close()
             conn.close()
+            print(f"Successfully deleted database record for identifier: {identifier}")
         except mariadb.Error as e:
             print(f"Error deleting upload record from database: {e}")

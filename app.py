@@ -72,6 +72,7 @@ def get_statistics():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 def delete_expired_files():
     while True:
         now = datetime.now()
@@ -80,10 +81,18 @@ def delete_expired_files():
             folder_path = os.path.join(app.config['UPLOAD_FOLDER'], identifier)
             if os.path.exists(folder_path):
                 try:
+                    for root, dirs, files in os.walk(folder_path, topdown=False):
+                        for name in files:
+                            os.remove(os.path.join(root, name))
+                        for name in dirs:
+                            os.rmdir(os.path.join(root, name))
                     os.rmdir(folder_path)
                     Connector.delete_upload_record(identifier)
+                    print(f"Successfully deleted folder and record for identifier: {identifier}")
                 except Exception as e:
                     print(f"Error deleting folder {folder_path}: {e}")
+            else:
+                print(f"Folder not found for identifier: {identifier}")
         time.sleep(30)  # Check every 12 hours // 43200
 
 
