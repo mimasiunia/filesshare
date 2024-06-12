@@ -99,6 +99,9 @@ def delete_expired_files():
 
 if __name__ == '__main__':
     print("Starting the Flask application...")
-    threading.Thread(target=delete_expired_files, daemon=True).start()
-    print("Background thread for deleting expired files has started.")
+    try:
+        threading.Thread(target=delete_expired_files, daemon=True).start()
+        print("Background thread for deleting expired files has started.")
+    except Exception as e:
+        print(f"Error starting background thread: {e}")
     app.run(host='0.0.0.0', port=4999)
