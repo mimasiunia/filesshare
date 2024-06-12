@@ -15,7 +15,7 @@ CORS(app)
 app.config['UPLOAD_FOLDER'] = 'data'
 app.config['MAX_CONTENT_LENGTH'] = 2048 * 1024 * 1024  # 2048 MB
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -79,6 +79,7 @@ def get_statistics():
 
 
 def delete_expired_files():
+    logger.debug("Background thread started for deleting expired files.")
     while True:
         now = datetime.now()
         logger.debug(f"Checking for expired files at {now}")
