@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from db import Connector
 import logic
 import os
 import zipfile
@@ -63,7 +64,7 @@ def download_files(identifier):
 @app.route('/api/fs/statistics', methods=['GET'])
 def get_statistics():
     try:
-        stats = logic.get_statistics()
+        stats = Connector.get_statistics()
         return jsonify(stats)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -55,6 +55,35 @@ class Connector:
             return None
 
     @staticmethod
+    def get_statistics():
+        try:
+            conn = Connector.create_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT total_files_uploaded, total_gb_uploaded FROM Statistics"
+            )
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
+
+            if row:
+                return {
+                    "total_files_uploaded": row[0],
+                    "total_gb_uploaded": row[1]
+                }
+            else:
+                return {
+                    "total_files_uploaded": 0,
+                    "total_gb_uploaded": 0.0
+                }
+        except Exception as e:
+            print(f"Error fetching statistics from database: {e}")
+            return {
+                "total_files_uploaded": 0,
+                "total_gb_uploaded": 0.0
+            }
+
+    @staticmethod
     def update_statistics(file_count, size_gb):
         try:
             conn = Connector.create_connection()

@@ -39,36 +39,6 @@ def get_folder_size(folder):
     return total_size / (1024 ** 3), file_count  # Return size in GB
 
 
-def get_statistics():
-    try:
-        conn = Connector.create_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT total_files_uploaded, total_gb_uploaded FROM Statistics"
-        )
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
-
-        if row:
-            return {
-                "total_files_uploaded": row[0],
-                "total_gb_uploaded": row[1]
-            }
-        else:
-            return {
-                "total_files_uploaded": 0,
-                "total_gb_uploaded": 0.0
-            }
-    except Exception as e:
-        print(f"Error fetching statistics from database: {e}")
-        return {
-            "total_files_uploaded": 0,
-            "total_gb_uploaded": 0.0
-        }
-
-
-
 def generate_identifier(length=12):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
