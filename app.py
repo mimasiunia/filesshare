@@ -7,6 +7,7 @@ from db import Connector
 import logic
 import os
 import zipfile
+import shutil
 
 app = Flask(__name__)
 CORS(app)
@@ -76,24 +77,24 @@ def get_statistics():
 def delete_expired_files():
     while True:
         now = datetime.now()
+        print(f"Checking for expired files at {now}")
         expired_files = Connector.get_expired_files(now)
+        print(f"Found {len(expired_files)} expired files.")
+
         for identifier in expired_files:
             folder_path = os.path.join(app.config['UPLOAD_FOLDER'], identifier)
             if os.path.exists(folder_path):
                 try:
-                    for root, dirs, files in os.walk(folder_path, topdown=False):
-                        for name in files:
-                            os.remove(os.path.join(root, name))
-                        for name in dirs:
-                            os.rmdir(os.path.join(root, name))
-                    os.rmdir(folder_path)
+                    shutil.rmtree(folder_path)
+                    print(f"Successfully deleted folder for identifier: {identifier}")
                     Connector.delete_upload_record(identifier)
-                    print(f"Successfully deleted folder and record for identifier: {identifier}")
+                    print(f"Successfully deleted database record for identifier: {identifier}")
                 except Exception as e:
                     print(f"Error deleting folder {folder_path}: {e}")
             else:
                 print(f"Folder not found for identifier: {identifier}")
-        time.sleep(30)  # Check every 12 hours // 43200
+
+        time.sleep(30)
 
 
 if __name__ == '__main__':

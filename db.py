@@ -98,7 +98,6 @@ class Connector:
         except mariadb.Error as e:
             print(f"Error updating statistics: {e}")
 
-    @staticmethod
     def get_expired_files(current_time):
         try:
             conn = Connector.create_connection()
@@ -110,7 +109,7 @@ class Connector:
             cursor.close()
             conn.close()
 
-            print(f"Found {len(rows)} expired files.")
+            print(f"Found {len(rows)} expired files in database.")
             return [row[0] for row in rows]
         except mariadb.Error as e:
             print(f"Error fetching expired files from database: {e}")
