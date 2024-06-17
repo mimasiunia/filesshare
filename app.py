@@ -11,11 +11,6 @@ app.config['UPLOAD_FOLDER'] = 'data'
 app.config['MAX_CONTENT_LENGTH'] = 2048 * 1024 * 1024  # 2048 MB
 
 
-@app.route('/')
-def home():
-    return jsonify(message="Welcome to FileShare API!")
-
-
 @app.route('/api/fs/upload', methods=['POST'])
 def upload_files():
     if 'files' not in request.files:

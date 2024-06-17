@@ -23,50 +23,32 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y mariadb-client libmariadb-dev
 
-    - name: Install dependencies for script
-      run: |
-        pip install -r script/requirements.txt
-
-    - name: Run tests for script
-      run: |
-        pytest script/tests
-
-    - name: Install dependencies for app
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r app/requirements.txt
+        pip install -r requirements.txt
 
-    - name: Run tests for app
-      run: |
-        pytest app/tests
+    - name: Run tests
+      run: pytest
 
-    - name: Build Docker Compose
-      run: |
-        sudo docker-compose -f docker-compose.yml build
+    - name: Build Docker image
+      run: sudo docker build . -t mimasiunia/filesshare:latest
 
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-    - name: Delete old Docker image for app from Docker Hub
+    - name: Delete old Docker image from Docker Hub
       run: |
-        REPO="mimasiunia/filesshare_app"
+        REPO="mimasiunia/filesshare"
         TAG="latest"
         TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ secrets.DOCKER_USERNAME }}", "password": "${{ secrets.DOCKER_PASSWORD }}"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
         MANIFEST_DIGEST=$(curl -s -H "Authorization: JWT ${TOKEN}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG}/" | jq -r .images[0].digest)
         curl -s -H "Authorization: JWT ${TOKEN}" -X DELETE "https://hub.docker.com/v2/repositories/${REPO}/manifests/${MANIFEST_DIGEST}"
 
-    - name: Delete old Docker image for script from Docker Hub
+    - name: Push Docker image to Docker Hub
       run: |
-        REPO="mimasiunia/filesshare_script"
-        TAG="latest"
-        TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ secrets.DOCKER_USERNAME }}", "password": "${{ secrets.DOCKER_PASSWORD }}"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-        MANIFEST_DIGEST=$(curl -s -H "Authorization: JWT ${TOKEN}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG}/" | jq -r .images[0].digest)
-        curl -s -H "Authorization: JWT ${TOKEN}" -X DELETE "https://hub.docker.com/v2/repositories/${REPO}/manifests/${MANIFEST_DIGEST}"
-
-    - name: Push Docker images to Docker Hub
-      run: |
-        sudo docker push mimasiunia/filesshare_app:latest
-        sudo docker push mimasiunia/filesshare_script:latest
+        sudo docker tag mimasiunia/filesshare:latest mimasiunia/filesshare:latest
+        sudo docker push mimasiunia/filesshare:latest
 
     - name: Deploy to VPS
       env:
@@ -80,12 +62,10 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         sudo chmod 666 /var/run/docker.sock
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
-          cd /myservices/fs
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose down
-          sudo docker ps -a -q --filter name=app_container | xargs --no-run-if-empty sudo docker rm
-          sudo docker ps -a -q --filter name=script_container | xargs --no-run-if-empty sudo docker rm
-          echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_app:latest || true
-          echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_script:latest || true
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose pull
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose up -d
+          echo "$SUDO_PASSWORD" | sudo -S docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+          echo "$SUDO_PASSWORD" | sudo -S docker stop filesshare || true
+          echo "$SUDO_PASSWORD" | sudo -S docker rm filesshare || true
+          echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare:latest || true
+          echo "$SUDO_PASSWORD" | sudo -S docker pull mimasiunia/filesshare:latest
+          echo "$SUDO_PASSWORD" | sudo -S docker run -d --name filesshare -p 4999:4999 -v /myservices/fs/data:/app/data -v /etc/letsencrypt/live/bryhas.com:/etc/letsencrypt/live/bryhas.com mimasiunia/filesshare:latest
         EOF

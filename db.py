@@ -7,7 +7,7 @@ class Connector:
         connection = mariadb.connect(
             user="fsApi",
             password="UnEGNEyVdsGfp4op6Slmc1",
-            host="172.17.0.2",
+            host="172.17.0.4",
             port=3306,
             database="fs"
         )
