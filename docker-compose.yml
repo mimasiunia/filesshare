@@ -3,8 +3,8 @@ version: '3.3'
 services:
   app:
     build:
-      context: ./app
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: app/Dockerfile
     image: mimasiunia/filesshare_app:latest
     container_name: app_container
     ports:
@@ -20,8 +20,8 @@ services:
 
   script:
     build:
-      context: ./script
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: script/Dockerfile
     image: mimasiunia/filesshare_script:latest
     container_name: script_container
     volumes:
