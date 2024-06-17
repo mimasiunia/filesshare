@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    image: mimasiunia/filesshare_app:latest
+    container_name: app_container
+    ports:
+      - "4999:4999"
+    volumes:
+      - ./data:/app/data
+      - /etc/letsencrypt/live/bryhas.com:/etc/letsencrypt/live/bryhas.com
+    environment:
+      - FLASK_APP=app.py
+
+  script:
+    build:
+      context: .
+      dockerfile: script/Dockerfile
+    image: mimasiunia/filesshare_script:latest
+    container_name: script_container
+    volumes:
+      - ./data:/script/data
