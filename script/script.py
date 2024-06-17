@@ -61,6 +61,7 @@ def delete_folder(identifier, base_path='data'):
     else:
         print(f"Folder {folder_path} does not exist")
 
+
 def clean_expired_uploads():
     print("Starting cleanup process")
     expired_uploads = Connector.get_expired_uploads()

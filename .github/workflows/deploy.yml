@@ -79,19 +79,13 @@ jobs:
         echo "${SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         sudo chmod 666 /var/run/docker.sock
-        
-        # Copy docker-compose.yml and necessary files to server
-        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa docker-compose.yml $USER@$SERVER:/myservices/fs/docker-compose.yml
-        scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa app $USER@$SERVER:/myservices/fs/app
-        scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa script $USER@$SERVER:/myservices/fs/script
-        
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
-          cd /myservices/fs || exit 1
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose down || true
-          sudo docker ps -a -q --filter name=app_container | xargs --no-run-if-empty sudo docker rm || true
-          sudo docker ps -a -q --filter name=script_container | xargs --no-run-if-empty sudo docker rm || true
+          cd /myservices/fs
+          echo "$SUDO_PASSWORD" | sudo -S docker-compose down
+          sudo docker ps -a -q --filter name=app_container | xargs --no-run-if-empty sudo docker rm
+          sudo docker ps -a -q --filter name=script_container | xargs --no-run-if-empty sudo docker rm
           echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_app:latest || true
           echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_script:latest || true
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose pull || exit 1
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose up -d || exit 1
+          echo "$SUDO_PASSWORD" | sudo -S docker-compose pull
+          echo "$SUDO_PASSWORD" | sudo -S docker-compose up -d
         EOF
