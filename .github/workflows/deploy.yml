@@ -80,8 +80,10 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         sudo chmod 666 /var/run/docker.sock
         
-        # Copy docker-compose.yml to server
+        # Copy docker-compose.yml and necessary files to server
         scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa docker-compose.yml $USER@$SERVER:/myservices/fs/docker-compose.yml
+        scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa app $USER@$SERVER:/myservices/fs/
+        scp -r -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa script $USER@$SERVER:/myservices/fs/
         
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
           cd /myservices/fs || exit 1
