@@ -47,10 +47,26 @@ jobs:
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-    - name: Push Docker images to Docker Hub
+    - name: Delete old Docker image for app from Docker Hub
       run: |
-        sudo docker tag app_container mimasiunia/filesshare_app:latest
-        sudo docker tag script_container mimasiunia/filesshare_script:latest
+        REPO="mimasiunia/filesshare_app"
+        TAG="latest"
+        TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ secrets.DOCKER_USERNAME }}", "password": "${{ secrets.DOCKER_PASSWORD }}"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+        MANIFEST_DIGEST=$(curl -s -H "Authorization: JWT ${TOKEN}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG}/" | jq -r .images[0].digest)
+        curl -s -H "Authorization: JWT ${TOKEN}" -X DELETE "https://hub.docker.com/v2/repositories/${REPO}/manifests/${MANIFEST_DIGEST}"
+
+    - name: Delete old Docker image for script from Docker Hub
+      run: |
+        REPO="mimasiunia/filesshare_script"
+        TAG="latest"
+        TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "${{ secrets.DOCKER_USERNAME }}", "password": "${{ secrets.DOCKER_PASSWORD }}"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+        MANIFEST_DIGEST=$(curl -s -H "Authorization: JWT ${TOKEN}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG}/" | jq -r .images[0].digest)
+        curl -s -H "Authorization: JWT ${TOKEN}" -X DELETE "https://hub.docker.com/v2/repositories/${REPO}/manifests/${MANIFEST_DIGEST}"
+
+    - name: Tag and push Docker images to Docker Hub
+      run: |
+        sudo docker tag project_root_app:latest mimasiunia/filesshare_app:latest
+        sudo docker tag project_root_script:latest mimasiunia/filesshare_script:latest
         sudo docker push mimasiunia/filesshare_app:latest
         sudo docker push mimasiunia/filesshare_script:latest
 
@@ -68,6 +84,10 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
           echo "$SUDO_PASSWORD" | sudo -S docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
           echo "$SUDO_PASSWORD" | sudo -S docker-compose down
+          echo "$SUDO_PASSWORD" | sudo -S docker rm \$(sudo docker ps -a -q --filter name=app_container)
+          echo "$SUDO_PASSWORD" | sudo -S docker rm \$(sudo docker ps -a -q --filter name=script_container)
+          echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_app:latest
+          echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_script:latest
           echo "$SUDO_PASSWORD" | sudo -S docker-compose pull
           echo "$SUDO_PASSWORD" | sudo -S docker-compose up -d
         EOF
