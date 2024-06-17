@@ -57,16 +57,19 @@ def delete_folder(identifier, base_path='data'):
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
         os.rmdir(folder_path)
+        print(f"Deleted folder: {folder_path}")
     else:
         print(f"Folder {folder_path} does not exist")
 
-
-def clean_expired_uploads():    # start function
+def clean_expired_uploads():
+    print("Starting cleanup process")
     expired_uploads = Connector.get_expired_uploads()
     for identifier in expired_uploads:
+        print(f"Deleting upload with identifier: {identifier}")
         delete_folder(identifier)
         Connector.delete_upload_db(identifier)
         print(f"Deleted upload {identifier} and its folder")
+    print("Cleanup process completed")
 
 
 if __name__ == "__main__":
