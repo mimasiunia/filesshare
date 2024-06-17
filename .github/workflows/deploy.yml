@@ -42,7 +42,7 @@ jobs:
 
     - name: Build Docker Compose
       run: |
-        sudo docker-compose build
+        sudo docker-compose -f /myservices/fs/docker-compose.yml build
 
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
@@ -81,11 +81,11 @@ jobs:
         sudo chmod 666 /var/run/docker.sock
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
           cd /myservices/fs
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose down
+          echo "$SUDO_PASSWORD" | sudo -S docker-compose -f /myservices/fs/docker-compose.yml down
           sudo docker ps -a -q --filter name=app_container | xargs --no-run-if-empty sudo docker rm
           sudo docker ps -a -q --filter name=script_container | xargs --no-run-if-empty sudo docker rm
           echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_app:latest || true
           echo "$SUDO_PASSWORD" | sudo -S docker rmi mimasiunia/filesshare_script:latest || true
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose pull
-          echo "$SUDO_PASSWORD" | sudo -S docker-compose up -d
+          echo "$SUDO_PASSWORD" | sudo -S docker-compose -f /myservices/fs/docker-compose.yml pull
+          echo "$SUDO_PASSWORD" | sudo -S docker-compose -f /myservices/fs/docker-compose.yml up -d
         EOF
