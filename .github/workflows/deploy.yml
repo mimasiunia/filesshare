@@ -80,8 +80,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         sudo chmod 666 /var/run/docker.sock
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
-          echo "$SUDO_PASSWORD" | sudo -S apt-get update
-          echo "$SUDO_PASSWORD" | sudo -S apt-get install -y docker-compose
+          cd /myservices/fs
           echo "$SUDO_PASSWORD" | sudo -S docker-compose down
           sudo docker ps -a -q --filter name=app_container | xargs --no-run-if-empty sudo docker rm
           sudo docker ps -a -q --filter name=script_container | xargs --no-run-if-empty sudo docker rm
