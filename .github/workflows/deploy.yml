@@ -63,10 +63,8 @@ jobs:
         MANIFEST_DIGEST=$(curl -s -H "Authorization: JWT ${TOKEN}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" "https://hub.docker.com/v2/repositories/${REPO}/tags/${TAG}/" | jq -r .images[0].digest)
         curl -s -H "Authorization: JWT ${TOKEN}" -X DELETE "https://hub.docker.com/v2/repositories/${REPO}/manifests/${MANIFEST_DIGEST}"
 
-    - name: Tag and push Docker images to Docker Hub
+    - name: Push Docker images to Docker Hub
       run: |
-        sudo docker tag project_root_app:latest mimasiunia/filesshare_app:latest
-        sudo docker tag project_root_script:latest mimasiunia/filesshare_script:latest
         sudo docker push mimasiunia/filesshare_app:latest
         sudo docker push mimasiunia/filesshare_script:latest
 
