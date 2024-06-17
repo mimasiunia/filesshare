@@ -79,12 +79,12 @@ jobs:
         echo "${SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         sudo chmod 666 /var/run/docker.sock
+        
+        # Copy docker-compose.yml to server
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa docker-compose.yml $USER@$SERVER:/myservices/fs/docker-compose.yml
+        
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $USER@$SERVER << EOF
           cd /myservices/fs || exit 1
-          if [ ! -f docker-compose.yml ]; then
-            echo "docker-compose.yml not found"
-            exit 1
-          fi
           echo "$SUDO_PASSWORD" | sudo -S docker-compose down || true
           sudo docker ps -a -q --filter name=app_container | xargs --no-run-if-empty sudo docker rm || true
           sudo docker ps -a -q --filter name=script_container | xargs --no-run-if-empty sudo docker rm || true
