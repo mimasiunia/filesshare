@@ -1,4 +1,5 @@
 Flask
 Flask-Cors
 pytest
+pytest-mock
 mariadb
